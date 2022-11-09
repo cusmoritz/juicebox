@@ -21,7 +21,8 @@ const createUser = async({username, password}) => {
         INSERT INTO users (username, password) 
         VALUES ($1, $2);
         `, [username, password]);
-        return result;
+        console.log('result in create user: ', result)
+        return result.rows;
     } catch (error) {
         throw error;
     }

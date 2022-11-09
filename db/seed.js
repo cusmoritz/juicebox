@@ -1,6 +1,24 @@
 // get our postgres client 
-const { client, getAllUsers } = require('./index');
+const { client, getAllUsers, createUser} = require('./index');
 
+
+// create 1 user for us to make sure it works
+const createInitialUser = async() => {
+    try {
+        console.log('creating initial user');
+
+        const albert = await createUser({username: "albert", password: "albert3times"})
+        const jones = await createUser({username: "jones67", password: "whatyoknow"})
+        const sam = await createUser({username: "samDaMan", password: "justsam"})
+
+        console.log(albert);
+
+        console.log('done creating albert')
+        return (albert, jones, sam);
+    } catch (error) {
+        throw error;
+    }
+}
 
 const testDB = async() => {
     try {
@@ -66,6 +84,7 @@ const rebuildDB = async () => {
         // drop the tables, create the tables after connection
         await dropTables();
         await createTables();
+        await createInitialUser();
         console.log('done rebuilding');
 
     } catch (error) {
