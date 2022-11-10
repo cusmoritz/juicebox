@@ -7,9 +7,9 @@ const createInitialUser = async() => {
     try {
         console.log('creating initial user');
 
-        const albert = await createUser({username: "albert", password: "albert3times"})
-        const jones = await createUser({username: "jones67", password: "whatyoknow"})
-        const sam = await createUser({username: "samDaMan", password: "justsam"})
+        const albert = await createUser({username: "albert", password: "albert3times", name: "albert", location: "montreal"})
+        const jones = await createUser({username: "jones67", password: "whatyoknow", name: "Gilmore", location: "vegas"})
+        const sam = await createUser({username: "samDaMan", password: "justsam", name: "samuel", location: "N. Dakota"})
 
         console.log(albert);
 
@@ -49,7 +49,10 @@ const createTables = async () => {
         CREATE TABLE users (
             id SERIAL PRIMARY KEY, 
             username VARCHAR(255) UNIQUE NOT NULL,
-            password VARCHAR(255) NOT NULL
+            password VARCHAR(255) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            location VARCHAR(255) NOT NULL,
+            active BOOLEAN DEFAULT true
         );
         `)
         console.log('done creating tables');
