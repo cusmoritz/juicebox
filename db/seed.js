@@ -6,9 +6,9 @@ const dropTables = async () => {
     try {
         // console.log('dropping tables');
         await client.query(`
+        DROP TABLE IF EXISTS post_tags;
+        DROP TABLE IF EXISTS tags;
         DROP TABLE IF EXISTS posts;
-        `);
-        await client.query(`
         DROP TABLE IF EXISTS users;
         `);
         // console.log('tables dropped');
@@ -34,18 +34,6 @@ const createTables = async () => {
         );
         `);
 
-        // console.log('done creating user tables');
-    } catch (error) {
-        console.log('error creating tables');
-        // again, throw in stead of console
-        throw error;
-    }
-};
-
-// create our posts tables
-const createPostsTables = async () => {
-    try {
-        // console.log('starting to create posts table');
         await client.query(`
         CREATE TABLE posts (
             id SERIAL PRIMARY KEY,
@@ -54,10 +42,27 @@ const createPostsTables = async () => {
             content TEXT NOT NULL,
             active BOOLEAN DEFAULT true
         );
-        `); 
-        // console.log('done creating posts table');
+        `);
+
+        await client.query(`
+        CREATE TABLE tags (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) UNIQUE NOT NULL
+        );
+        `);
+
+        await client.query(`
+        CREATE TABLE post_tags (
+            "postId" INTEGER UNIQUE REFERENCES posts(id),
+            "tagId" INTEGER UNIQUE REFERENCES tags(id) 
+        );
+        `)
+
+        // console.log('done creating user tables');
     } catch (error) {
-        console.log(error)
+        console.log('error creating tables');
+        // again, throw in stead of console
+        throw error;
     }
 };
 
@@ -111,6 +116,8 @@ const createInitialPosts = async() => {
     }
 };
 
+
+
 // function that will delete tables, and then recreate them
 const rebuildDB = async () => {
     try {
@@ -120,7 +127,6 @@ const rebuildDB = async () => {
         // drop the tables, create the tables after connection
         await dropTables();
         await createTables();
-        await createPostsTables();
         await createInitialUser();
         await createInitialPosts();
         // await getUserById(2);
