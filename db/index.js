@@ -14,7 +14,7 @@ const createUser = async({username, password, name, location}) => {
         ON CONFLICT (username) DO NOTHING
         RETURNING *;
         `, [username, password, name, location]);
-        console.log('result in create user: ', result.rows)
+        // console.log('result in create user: ', result.rows)
         return result.rows;
     } catch (error) {
         throw error;
@@ -23,11 +23,15 @@ const createUser = async({username, password, name, location}) => {
 
 // create a function that calls for all users and their id
 const getAllUsers = async () => {
-    const { rows } = await client.query(`
-    SELECT id, username, name, location
-    FROM users;
-    `)
-    return rows;
+    try {
+        const { rows } = await client.query(`
+        SELECT id, username, name, location
+        FROM users;
+        `)
+        return rows;
+    } catch (error) {
+        console.error('there was a problem getting all users', error);
+    }
 };
 
 const updateUser = async (id, fields = {}) => {
@@ -68,14 +72,14 @@ const updateUser = async (id, fields = {}) => {
 
 // create posts function
 const createPost = async ({authorId, title, content}) => {
-    console.log('we are creating a post');
+    // console.log('we are creating a post');
     try {
         const result = await client.query(`
         INSERT INTO posts ("authorId", title, content)
         VALUES ($1, $2, $3)
         RETURNING *;
         `, [authorId, title, content])
-        console.log('we are done creating a post: ', result)
+        // console.log('we are done creating a post: ', result)
     } catch (error) {
         console.error(error);
         throw error;
@@ -83,12 +87,12 @@ const createPost = async ({authorId, title, content}) => {
 };
 
 const updatePost = async(id, fields ={}) => {
-
+    console.log('trying to update posts ', id)
     // title, content, active
     const setFields = Object.keys(fields).map(
         (key, index) => `"${ key }"=$${ index + 1 }`
     ).join(', ');
-
+        // console.log('we are updating a post');
     try {
         const results = await client.query(`
             UPDATE posts 
@@ -96,32 +100,73 @@ const updatePost = async(id, fields ={}) => {
             WHERE id=${ id }
             RETURNING *;
         `, Object.keys(fields));
+        // console.log('post updated')
+        return results;
     } catch (error) {
         console.log(error);
         throw error;
     }
 };
 
-// const updateUser = async (id, fields = {}) => {
-//     const setString = Object.keys(fields).map(
-//         (key, index) => `"${ key }"=$${ index + 1}`
-//     ).join(', ');
+// get all posts function
+const getAllPosts = async () => {
+    try {
+        // title, content, active, posterId
+        const { rows } = await client.query(`
+        SELECT title, content
+        FROM posts;
+        `)
+        return rows;
+    } catch (error) {
+        console.error('there was a problem getting all posts', error);
+        throw error;
+    }
+};
 
-//     // return early if string is empty
+// get posts by user
+const getPostsByUser = async(userId) => {
+    // console.log('userId in getPostsByUser ', userId)
+    try {
+        // console.log('getting posts from ', userId);
+        const { rows } = await client.query(`
+        SELECT * FROM posts
+        WHERE "authorId"=${ userId };
+        `);
+        // console.log('done getting posts from ', userId);
+        return rows;
+    } catch (error) {
+        console.error('there was a problem getting posts by user');
+        throw error;
+    }
+};
 
-//     if (setString.length === 0) {
-//         return;
-//     }
+// (username, password, name, location) 
+const getUserById = async(userId) => {
+    // console.log('we are getting a user by their id');
+    try {
+        const { rows } = await client.query(`
+        SELECT *
+        FROM users
+        WHERE id=${ userId };
+        `);
+        // console.log('this should be our user objcet ', rows)
+        const newUserObject = rows[0];
 
-//     try {
-//         const result = await client.query(`
-//         UPDATE users
-//         SET ${ setString }
-//         WHERE id=${ id }
-//         RETURNING *;
-//         `, Object.values(fields));
-
-
+        // make sure there is a user before we return
+        if (!newUserObject) {
+            return null;
+        } else {
+            const userPosts = await getPostsByUser(newUserObject.id);
+            newUserObject.posts = userPosts;
+            delete newUserObject.password;
+            // console.log('this is our user with their posts: ', newUserObject);
+            return newUserObject;
+        }
+    } catch (error) {
+        console.log('there was a problem getting the user');
+        throw error;
+    }
+};
 
 //export our client as an object so we can easily add stuff later
 module.exports = {
@@ -130,4 +175,8 @@ module.exports = {
     createUser,
     updateUser,
     createPost,
+    updatePost,
+    getAllPosts,
+    getPostsByUser,
+    getUserById,
 }

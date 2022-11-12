@@ -1,17 +1,17 @@
 // get our postgres client 
-const { client, getAllUsers, createUser, updateUser, createPost} = require('./index');
+const { client, getAllUsers, createUser, updateUser, createPost, getPostsByUser, getUserById, getAllPosts, updatePost} = require('./index');
 
 // get rid of the current table
 const dropTables = async () => {
     try {
-        console.log('dropping tables');
+        // console.log('dropping tables');
         await client.query(`
         DROP TABLE IF EXISTS posts;
         `);
         await client.query(`
         DROP TABLE IF EXISTS users;
         `);
-        console.log('tables dropped');
+        // console.log('tables dropped');
     } catch (error) {
         console.log('error dropping tables');
         // throw instead of console.log so it goes back to the func that called it
@@ -22,7 +22,7 @@ const dropTables = async () => {
 // create all tables in the db
 const createTables = async () => {
     try {
-        console.log('starting to create tables');
+        // console.log('starting to create tables');
         await client.query(`
         CREATE TABLE users (
             id SERIAL PRIMARY KEY, 
@@ -34,7 +34,7 @@ const createTables = async () => {
         );
         `);
 
-        console.log('done creating user tables');
+        // console.log('done creating user tables');
     } catch (error) {
         console.log('error creating tables');
         // again, throw in stead of console
@@ -45,7 +45,7 @@ const createTables = async () => {
 // create our posts tables
 const createPostsTables = async () => {
     try {
-        console.log('starting to create posts table');
+        // console.log('starting to create posts table');
         await client.query(`
         CREATE TABLE posts (
             id SERIAL PRIMARY KEY,
@@ -55,7 +55,7 @@ const createPostsTables = async () => {
             active BOOLEAN DEFAULT true
         );
         `); 
-        console.log('done creating posts table');
+        // console.log('done creating posts table');
     } catch (error) {
         console.log(error)
     }
@@ -64,15 +64,48 @@ const createPostsTables = async () => {
 // create 1 user for us to make sure it works
 const createInitialUser = async() => {
     try {
-        console.log('creating initial user');
+        // console.log('creating initial user');
 
         const albert = await createUser({username: "albert", password: "albert3times", name: "albert", location: "montreal"});
         const jones = await createUser({username: "jones67", password: "whatyoknow", name: "Gilmore", location: "vegas"});
         const sam = await createUser({username: "samDaMan", password: "justsam", name: "samuel", location: "N. Dakota"});
 
-        console.log('done creating initial users')
+        // console.log('done creating initial users')
         return (albert, jones, sam);
     } catch (error) {
+        throw error;
+    }
+};
+
+// this will be our first test post
+const createInitialPosts = async() => {
+    // console.log('we are creating initial post');
+    try {
+        const [albert, jones, sam] = await getAllUsers();
+        await createPost({
+            authorId: albert.id,
+            title: "initial post",
+            content: "just setting up my tumblr"
+        });
+        await createPost({
+            authorId: jones.id,
+            title: "FIRST post",
+            content: "hey is this thing on"
+        });
+        await createPost({
+            authorId: sam.id,
+            title: "POSTING FROM VACATION",
+            content: "Hello there my name is Sam and I hope you like coming back to my website :)"
+        });
+        await createPost({
+            authorId: albert.id,
+            title: "second post coming in hot",
+            content: "Does anyone else have strong opinions about onions?"
+        });
+        // console.log('we are done creating the initial posts');
+        
+    } catch (error) {
+        console.log('there was a problem creating the initial post: ', error);
         throw error;
     }
 };
@@ -82,45 +115,47 @@ const rebuildDB = async () => {
     try {
         // connect client from index.js
         client.connect();
-        console.log('rebuilding databaase');
+        // console.log('rebuilding databaase');
         // drop the tables, create the tables after connection
         await dropTables();
         await createTables();
         await createPostsTables();
         await createInitialUser();
-        console.log('done rebuilding');
+        await createInitialPosts();
+        // await getUserById(2);
+        // console.log('done rebuilding');
 
     } catch (error) {
         // here we console log beacuse we just call functions, not db directly
         console.log(error)
     } 
-    // finally {
-    //     // end connection with the db
-    //     client.end();
-    // }
 };
 
 const testDB = async() => {
     try {
 
-        // talking to the db and getting all users
-        // const { rows } = await client.query(`
-        // SELECT * FROM users;
-        // `);
-
+        console.log("Calling getAllUsers");
         const users = await getAllUsers();
-        // console.log (users);
-        // console.log(rows);
-        console.log(users);
+        console.log("Result:", users);
 
-        console.log('here we are updating a user');
+        console.log("Calling updateUser on users[0]");
         const updateUserResult = await updateUser(users[0].id, {
             name: "updated users name",
             location: "updated location1"
         });
-        console.log('updated results' , updateUserResult);
+        console.log("Result:", updateUserResult);
 
-        console.log('update user function finished');
+        console.log("Calling getAllPosts");
+        const posts = await getAllPosts();
+        console.log("Result:", posts);
+
+        console.log("Calling updatePost on posts[0]");
+        const updatePostResult = await updatePost(posts[0].id, {
+            title: "New Title",
+            content: "Updated Content"
+          });
+        console.log('result: ', updatePostResult)
+
 
         return users;
     } catch (error) {
