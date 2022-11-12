@@ -152,11 +152,14 @@ const testDB = async() => {
 
         console.log("Calling updatePost on posts[0]");
         const updatePostResult = await updatePost(posts[0].id, {
-            title: "New Title",
-            content: "Updated Content"
+            title: "this title has been updated",
+            content: "content updating is difficult"
           });
         console.log('result: ', updatePostResult)
 
+        console.log('calling getUserById with 1');
+        const albert = await getUserById(1);
+        console.log('results: ', albert);
 
         return users;
     } catch (error) {
