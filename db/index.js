@@ -80,28 +80,29 @@ const createPost = async ({authorId, title, content}) => {
         RETURNING *;
         `, [authorId, title, content])
         // console.log('we are done creating a post: ', result)
+        return result;
     } catch (error) {
         console.error(error);
         throw error;
     }
 };
 
-const updatePost = async(id, fields ={}) => {
-    console.log('trying to update posts ', id)
+const updatePost = async(id, fields = {}) => {
+    // console.log('trying to update posts ', fields)
     // title, content, active
     const setFields = Object.keys(fields).map(
         (key, index) => `"${ key }"=$${ index + 1 }`
     ).join(', ');
-        // console.log('we are updating a post');
+        // console.log('we are updating a post: ', setFields);
     try {
         const results = await client.query(`
             UPDATE posts 
-            SET ${setFields}
+            SET ${ setFields }
             WHERE id=${ id }
             RETURNING *;
-        `, Object.keys(fields));
-        // console.log('post updated')
-        return results;
+        `, Object.values(fields));
+        // console.log('post updated: ', results)
+        return results.rows;
     } catch (error) {
         console.log(error);
         throw error;
@@ -113,9 +114,9 @@ const getAllPosts = async () => {
     try {
         // title, content, active, posterId
         const { rows } = await client.query(`
-        SELECT title, content
+        SELECT *
         FROM posts;
-        `)
+        `);
         return rows;
     } catch (error) {
         console.error('there was a problem getting all posts', error);

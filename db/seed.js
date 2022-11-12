@@ -82,6 +82,7 @@ const createInitialPosts = async() => {
     // console.log('we are creating initial post');
     try {
         const [albert, jones, sam] = await getAllUsers();
+
         await createPost({
             authorId: albert.id,
             title: "initial post",
