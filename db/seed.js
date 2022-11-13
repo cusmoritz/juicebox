@@ -1,5 +1,5 @@
 // get our postgres client 
-const { client, getAllUsers, createUser, updateUser, createPost, getPostsByUser, getUserById, getAllPosts, updatePost} = require('./index');
+const { client, getAllUsers, createUser, updateUser, createPost, getPostsByUser, getUserById, getAllPosts, updatePost, createTags} = require('./index');
 
 // get rid of the current table
 const dropTables = async () => {
@@ -166,6 +166,9 @@ const testDB = async() => {
         console.log('calling getUserById with 1');
         const albert = await getUserById(1);
         console.log('results: ', albert);
+
+        const listofTags = ["great", "supergreat", "coolBeans"];
+        await createTags(listofTags)
 
         return users;
     } catch (error) {

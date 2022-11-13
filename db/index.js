@@ -87,6 +87,35 @@ const createPost = async ({authorId, title, content}) => {
     }
 };
 
+const createTags = async (tagList) => {
+
+    console.log(tagList);
+    if (tagList === 0) {
+        return;
+    }
+
+    const insertValues = tagList.map(
+        (eachTag, index) => `$${index + 1}`).join('), (');
+    console.log('insertValues: ', insertValues)
+
+    const selectValues = tagList.map(
+        (eachTag, index) => `$${index + 1}`).join(', ');
+    console.log('selectValues ', selectValues)
+
+    try {
+        const result = await client.query(`
+        INSERT INTO tags (name)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (name) DO NOTHING;
+        `, ['great', 'supergreat', 'coolBeans']);
+        console.log('creating tags', result);
+
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
 const updatePost = async(id, fields = {}) => {
     // console.log('trying to update posts ', fields)
     // title, content, active
@@ -180,4 +209,5 @@ module.exports = {
     getAllPosts,
     getPostsByUser,
     getUserById,
+    createTags,
 }
