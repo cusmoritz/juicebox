@@ -8,8 +8,11 @@ const dropTables = async () => {
         await client.query(`
         DROP TABLE IF EXISTS post_tags;
         DROP TABLE IF EXISTS tags;
+
         DROP TABLE IF EXISTS posts;
+
         DROP TABLE IF EXISTS users;
+
         `);
         // console.log('tables dropped');
     } catch (error) {
@@ -53,14 +56,15 @@ const createTables = async () => {
 
         await client.query(`
         CREATE TABLE post_tags (
-            "postId" INTEGER UNIQUE REFERENCES posts(id),
-            "tagId" INTEGER UNIQUE REFERENCES tags(id) 
+            "postId" INTEGER REFERENCES posts(id),
+            "tagId" INTEGER REFERENCES tags(id),
+            UNIQUE ("postId", "tagId")
         );
         `)
 
         // console.log('done creating user tables');
     } catch (error) {
-        console.log('error creating tables');
+        console.log('error creating tables', error);
         // again, throw in stead of console
         throw error;
     }

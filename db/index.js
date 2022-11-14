@@ -89,7 +89,8 @@ const createPost = async ({authorId, title, content}) => {
 
 const createTags = async (tagList) => {
 
-    console.log(tagList);
+    console.log('this is the tagList: ', tagList)
+
     if (tagList === 0) {
         return;
     }
@@ -103,18 +104,18 @@ const createTags = async (tagList) => {
     console.log('selectValues ', selectValues)
 
     try {
-        const result = await client.query(`
+        const {rows} = await client.query(`
         INSERT INTO tags (name)
         VALUES (${insertValues})
         ON CONFLICT (name) DO NOTHING;
-        `, [tagList]);
-        console.log('creating tags', result);
+        `, tagList);
+        console.log('creating tags', rows);
 
         const getTags = await client.query(`
         SELECT * FROM tags
-        WHERE name=${tagList}
-        RETURNING *;
-        `)
+        WHERE name
+        IN (${selectValues});
+        `, tagList)
         console.log('getting tags from table: ', getTags.rows);
 
 
@@ -124,17 +125,17 @@ const createTags = async (tagList) => {
     }
 };
 
-const createPostTag = async(postId, tagId) => {
-    try {
-        await client.query(`
-        INSERT INTO post_tags("postId", "tagId")
-        VALUES ($1, $2)
-        ON CONFLICT ("postId, "tagId) DO NOTHING;
-        `, [postId, tagId])
-    } catch (error) {
-        console.log(error);
-    }
-}
+// const createPostTag = async(postId, tagId) => {
+//     try {
+//         await client.query(`
+//         INSERT INTO post_tags("postId", "tagId")
+//         VALUES ($1, $2)
+//         ON CONFLICT ("postId, "tagId) DO NOTHING;
+//         `, [postId, tagId])
+//     } catch (error) {
+//         console.log(error);
+//     }
+// }
 
 const updatePost = async(id, fields = {}) => {
     // console.log('trying to update posts ', fields)
