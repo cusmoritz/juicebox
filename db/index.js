@@ -97,11 +97,11 @@ const createTags = async (tagList) => {
 
     const insertValues = tagList.map(
         (eachTag, index) => `$${index + 1}`).join('), (');
-    console.log('insertValues: ', insertValues)
+    // console.log('insertValues: ', insertValues)
 
     const selectValues = tagList.map(
         (eachTag, index) => `$${index + 1}`).join(', ');
-    console.log('selectValues ', selectValues)
+    // console.log('selectValues ', selectValues)
 
     try {
         const {rows} = await client.query(`
@@ -109,7 +109,9 @@ const createTags = async (tagList) => {
         VALUES (${insertValues})
         ON CONFLICT (name) DO NOTHING;
         `, tagList);
-        console.log('creating tags', rows);
+
+        // you can't console log this lol...?
+        // console.log('creating tags', rows);
 
         const getTags = await client.query(`
         SELECT * FROM tags
@@ -118,6 +120,7 @@ const createTags = async (tagList) => {
         `, tagList)
         console.log('getting tags from table: ', getTags.rows);
 
+        return getTags.rows;
 
     } catch (error) {
         console.error(error);
@@ -125,17 +128,70 @@ const createTags = async (tagList) => {
     }
 };
 
-// const createPostTag = async(postId, tagId) => {
-//     try {
-//         await client.query(`
-//         INSERT INTO post_tags("postId", "tagId")
-//         VALUES ($1, $2)
-//         ON CONFLICT ("postId, "tagId) DO NOTHING;
-//         `, [postId, tagId])
-//     } catch (error) {
-//         console.log(error);
-//     }
-// }
+const createPostTag = async(postId, tagId) => {
+    try {
+        await client.query(`
+        INSERT INTO post_tags("postId", "tagId")
+        VALUES ($1, $2)
+        ON CONFLICT ("postId", "tagId") DO NOTHING;
+        `, [postId, tagId]);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+const addTagsToPost = async (postId, tagList) => {
+    try {
+        const creatingPostTagPromise = tagList.map(tag => createPostTag(postId, tag.id));
+        await Promise.all(creatingPostTagPromise);
+
+        return await getPostById(postId);
+
+    } catch (error) {
+        console.error('there was a problem adding Tags to post: ', error);
+        throw error;
+    }
+};
+
+const getPostById = async (postId) => {
+    try {
+
+        //this function gets our post
+        const {rows: [ singlePost ]} = await client.query(`
+        SELECT *
+        FROM posts
+        WHERE id=$1;
+        `, [postId]);
+        console.log('this is posts by id: ', singlePost);
+
+        // this function selects all the tags, joins the tags that have been paired with a postId
+        const {rows: [ tags ] } = await client.query(`
+        SELECT tags.*
+        FROM tags
+        JOIN post_tags ON tags.id=post_tags."tagId"
+        WHERE post_tags."postId"=$1;
+        `, [singlePost.id]);
+        console.log('this should be all the tags on the post: ', tags);
+
+        const {rows: [ author ]} = await client.query(`
+        SELECT id, username, name, location
+        FROM users
+        WHERE id=$1;
+        `, [singlePost.id]);
+        console.log('this should be our author: ', author);
+
+        singlePost.tags = tags;
+        singlePost.author = author;
+
+        delete singlePost.authorId;
+
+        return singlePost;
+
+    } catch (error) {
+        console.log('there was a problem getting posts by Id: ', error);
+        throw error;
+    }
+}
 
 const updatePost = async(id, fields = {}) => {
     // console.log('trying to update posts ', fields)
@@ -231,4 +287,7 @@ module.exports = {
     getPostsByUser,
     getUserById,
     createTags,
+    addTagsToPost,
+    createPostTag,
+    getPostById,
 }

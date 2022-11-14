@@ -1,5 +1,5 @@
 // get our postgres client 
-const { client, getAllUsers, createUser, updateUser, createPost, getPostsByUser, getUserById, getAllPosts, updatePost, createTags} = require('./index');
+const { client, getAllUsers, createUser, updateUser, createPost, getPostsByUser, getUserById, getAllPosts, updatePost, createTags, addTagsToPost, createPostTag, getPostById} = require('./index');
 
 // get rid of the current table
 const dropTables = async () => {
@@ -120,7 +120,30 @@ const createInitialPosts = async() => {
     }
 };
 
+const createFirstTags = async () => {
+    try {
+        console.log('creating tags');
 
+        const [bummer, niceOne, WhereWeAt, LOTRlore] = await createTags([
+            "#bummer",
+            "#niceOne",
+            "#WhereWeAt",
+            "#LOTRlore",
+        ]);
+        const [post1, post2, post3] = await getAllPosts();
+
+        await addTagsToPost(post1.id, [bummer, WhereWeAt]);
+        await addTagsToPost(post2.id, [LOTRlore, niceOne]);
+        await addTagsToPost(post3.id, [niceOne, LOTRlore, WhereWeAt]);
+
+        console.log('done making tags');
+        
+        
+    } catch (error) {
+        console.error('there was an error making tags: ', error);
+        throw error;
+    }
+}
 
 // function that will delete tables, and then recreate them
 const rebuildDB = async () => {
@@ -171,8 +194,13 @@ const testDB = async() => {
         const albert = await getUserById(1);
         console.log('results: ', albert);
 
-        const listofTags = ["great", "supergreat", "coolBeans"];
-        await createTags(listofTags)
+        console.log('calling get posts by user ID with 1');
+        const callingGPBUID = await getPostsByUser(1);
+        console.log('Result: ', callingGPBUID);
+
+        console.log('we are creating initial tags');
+        const createInitialTags = await createFirstTags();
+        console.log('this is what our created tags look like: ', createInitialTags);
 
         return users;
     } catch (error) {
