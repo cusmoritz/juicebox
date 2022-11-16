@@ -168,31 +168,31 @@ const rebuildDB = async () => {
 const testDB = async() => {
     try {
 
-        // console.log("Calling getAllUsers");
-        // const users = await getAllUsers();
-        // console.log("Result:", users);
+        console.log("Calling getAllUsers");
+        const users = await getAllUsers();
+        console.log("Result:", users);
 
-        // console.log("Calling updateUser on users[0]");
-        // const updateUserResult = await updateUser(users[0].id, {
-        //     name: "updated users name",
-        //     location: "updated location1"
-        // });
-        // console.log("Result:", updateUserResult);
+        console.log("Calling updateUser on users[0]");
+        const updateUserResult = await updateUser(users[0].id, {
+            name: "updated users name",
+            location: "updated location1"
+        });
+        console.log("Result:", updateUserResult);
 
-        // console.log("Calling getAllPosts");
-        // const posts = await getAllPosts();
-        // console.log("Result:", posts);
+        console.log("Calling getAllPosts");
+        const posts = await getAllPosts();
+        console.log("Result:", posts);
 
-        // console.log("Calling updatePost on posts[0]");
-        // const updatePostResult = await updatePost(posts[0].id, {
-        //     title: "this title has been updated",
-        //     content: "content updating is difficult"
-        //   });
-        // console.log('result: ', updatePostResult)
+        console.log("Calling updatePost on posts[0]");
+        const updatePostResult = await updatePost(posts[0].id, {
+            title: "this title has been updated",
+            content: "content updating is difficult"
+          });
+        console.log('result: ', updatePostResult)
 
         console.log('calling getUserById with 1');
         const albert = await getUserById(1);
-        // console.log('results: ', albert);
+        console.log('results: ', albert);
 
         console.log('calling get posts by user ID with 1');
         const callingGPBUID = await getPostsByUser(1);

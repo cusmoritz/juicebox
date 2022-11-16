@@ -89,7 +89,7 @@ const createPost = async ({authorId, title, content}) => {
 
 const createTags = async (tagList) => {
 
-    console.log('this is the tagList: ', tagList)
+    // console.log('this is the tagList: ', tagList)
 
     if (tagList === 0) {
         return;
@@ -158,7 +158,7 @@ const addTagsToPost = async (postId, tagList) => {
 const getPostById = async (postId) => {
     try {
 
-        console.log('postId inside getPostById', postId);
+        // console.log('postId inside getPostById', postId);
 
         //this function gets our post
         const {rows: [ singlePost ]} = await client.query(`
@@ -167,7 +167,7 @@ const getPostById = async (postId) => {
         WHERE id=$1;
         `, [postId]);
 
-        console.log('singlepost in getPostById', singlePost )
+        // console.log('singlepost in getPostById', singlePost )
 
         // this function selects all the tags, joins the tags that have been paired with a postId
         const {rows: [ tags ] } = await client.query(`
@@ -176,6 +176,8 @@ const getPostById = async (postId) => {
         JOIN post_tags ON tags.id=post_tags."tagId"
         WHERE post_tags."postId"=$1;
         `, [singlePost.id]);
+
+        console.log('>>>>>>>>>>>>>>>>>', tags);
 
         // now we get the post author object
         const {rows: [ author ]} = await client.query(`
@@ -245,25 +247,24 @@ const getPostsByUser = async(userId) => {
     // } catch (error) {
     //     console.error('there was a problem getting posts by user');
     //     throw error;
-    // }
+    // };
 
     //refactored code to call getPostsById , which returns more information
     try {
         const { rows: postIds } = await client.query(`
-        SELECT id
-        FROM posts
-        WHERE "authorId"=${userId};
+          SELECT id 
+          FROM posts 
+          WHERE "authorId"=${ userId };
         `);
-
-        console.log('>>>>>>>>>>>>>rows', postIds);
-
-        const posts = await Promise.all(postIds.map(eachPost => { getPostById(eachPost.id)}));
-
-        console.log('posts in getPostsByUser', posts)
+    
+        const posts = await Promise.all(postIds.map(
+          post => getPostById( post.id )
+        ));
+    
         return posts;
-    } catch (error) {
-        console.error('there was an error getting posts by the user: ', error)
-    }
+      } catch (error) {
+        throw error;
+      }
 };
 
 // (username, password, name, location) 
