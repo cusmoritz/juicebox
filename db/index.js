@@ -129,6 +129,7 @@ const createTags = async (tagList) => {
 };
 
 const createPostTag = async(postId, tagId) => {
+
     try {
         await client.query(`
         INSERT INTO post_tags("postId", "tagId")
@@ -136,11 +137,13 @@ const createPostTag = async(postId, tagId) => {
         ON CONFLICT ("postId", "tagId") DO NOTHING;
         `, [postId, tagId]);
     } catch (error) {
-        console.log(error);
+        console.log('error creating a post tag: ' , error);
     }
 };
 
 const addTagsToPost = async (postId, tagList) => {
+
+    console.log('tagList in addTags: ', tagList)
     try {
         const creatingPostTagPromise = tagList.map(tag => createPostTag(postId, tag.id));
         await Promise.all(creatingPostTagPromise);
@@ -162,28 +165,30 @@ const getPostById = async (postId) => {
         FROM posts
         WHERE id=$1;
         `, [postId]);
-        console.log('this is posts by id: ', singlePost);
+        // console.log('this is posts by id: ', singlePost);
 
         // this function selects all the tags, joins the tags that have been paired with a postId
-        const {rows: [ tags ] } = await client.query(`
+        const { rows } = await client.query(`
         SELECT tags.*
         FROM tags
         JOIN post_tags ON tags.id=post_tags."tagId"
         WHERE post_tags."postId"=$1;
         `, [singlePost.id]);
-        console.log('this should be all the tags on the post: ', tags);
+        // console.log('this should be all the tags on the post: ', rows);
 
         const {rows: [ author ]} = await client.query(`
         SELECT id, username, name, location
         FROM users
         WHERE id=$1;
-        `, [singlePost.id]);
-        console.log('this should be our author: ', author);
+        `, [singlePost.authorId]);
+        // console.log('this should be our author: ', author);
 
-        singlePost.tags = tags;
+        singlePost.tags = rows;
         singlePost.author = author;
 
         delete singlePost.authorId;
+
+        // console.log('singlePost', singlePost);
 
         return singlePost;
 
