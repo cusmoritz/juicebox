@@ -129,7 +129,6 @@ const createTags = async (tagList) => {
 };
 
 const createPostTag = async(postId, tagId) => {
-
     try {
         await client.query(`
         INSERT INTO post_tags("postId", "tagId")
@@ -137,7 +136,7 @@ const createPostTag = async(postId, tagId) => {
         ON CONFLICT ("postId", "tagId") DO NOTHING;
         `, [postId, tagId]);
     } catch (error) {
-        console.log('error creating a post tag: ' , error);
+        console.log(error);
     }
 };
 
@@ -171,7 +170,7 @@ const getPostById = async (postId) => {
         console.log('singlepost in getPostById', singlePost )
 
         // this function selects all the tags, joins the tags that have been paired with a postId
-        const { rows } = await client.query(`
+        const {rows: [ tags ] } = await client.query(`
         SELECT tags.*
         FROM tags
         JOIN post_tags ON tags.id=post_tags."tagId"
@@ -185,12 +184,10 @@ const getPostById = async (postId) => {
         WHERE id=$1;
         `, [singlePost.authorId]);
 
-        singlePost.tags = rows;
+        singlePost.tags = tags;
         singlePost.author = author;
 
         delete singlePost.authorId;
-
-        // console.log('singlePost', singlePost);
 
         return singlePost;
 

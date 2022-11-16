@@ -122,7 +122,7 @@ const createInitialPosts = async() => {
 
 const createFirstTags = async () => {
     try {
-        // console.log('creating tags');
+        console.log('creating tags');
 
         const [bummer, niceOne, WhereWeAt, LOTRlore] = await createTags([
             "#bummer",
@@ -136,7 +136,7 @@ const createFirstTags = async () => {
         await addTagsToPost(post2.id, [LOTRlore, niceOne]);
         await addTagsToPost(post3.id, [niceOne, LOTRlore, WhereWeAt]);
 
-        // console.log('done making tags');
+        console.log('done making tags');
         
         
     } catch (error) {
@@ -156,7 +156,6 @@ const rebuildDB = async () => {
         await createTables();
         await createInitialUser();
         await createInitialPosts();
-        await createFirstTags();
         // await getUserById(2);
         // console.log('done rebuilding');
 
@@ -205,7 +204,7 @@ const testDB = async() => {
 
         return users;
     } catch (error) {
-        console.error('there was an error testing the database', error)
+        console.error(error)
     }
 };
 
