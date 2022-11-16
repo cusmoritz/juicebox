@@ -1,6 +1,6 @@
 // get and destructure the client from index.js
 // also import our functions from index.js
-const { client, getAllUsers, createUsers } = require('./index');
+const { client, getAllUsers, createUser, updateUser } = require('./index');
 
 // we have to drop all the tables before we can rebuild the database
 const dropTables = async() => {
@@ -25,7 +25,10 @@ const createTables = async() => {
         CREATE TABLE users (
             id SERIAL PRIMARY KEY,
             username VARCHAR(255) UNIQUE NOT NULL,
-            password VARCHAR(255) NOT NULL
+            password VARCHAR(255) NOT NULL,
+            name VARCHAR(255) NOT NULL, 
+            location VARCHAR(255) NOT NULL,
+            active BOOLEAN DEFAULT true
         );
         `);
 
@@ -38,11 +41,13 @@ const createTables = async() => {
 const createInitialUsers = async() => {
     try {
         
-        const albert = await createUsers({username: 'albert', password: 'notAlbert'});
-        const anthony = await createUsers({ username: 'anTONY', password: 'hereLIEStony'});
-        const sam = await createUsers({username: 'SAMwhich', password: 'SAMeyeAM'});
+        const albert = await createUser({username: 'albert', password: 'notAlbert', name: 'Alberto', location: 'Hollywood'});
 
-        
+        const anthony = await createUser({ username: 'anTONY', password: 'hereLIEStony', name: 'Soprano', loaction: 'Italy?'});
+
+        const sam = await createUser({username: 'SAMwhich', password: 'SAMeyeAM', name: 'samdra', location: 'OHIO'});
+
+
     } catch (error) {
         console.log('there was an error in createInitialUsers: ', error);
         throw error;
@@ -66,12 +71,17 @@ const rebuildDb = async() => {
 
 const testDb = async() => {
     try {
-        // connect to the client from index.js
-        client.connect();
 
         const users = await getAllUsers();
+        console.log('users from testDB', users);
 
-        console.log(users);
+        const updatedUserInTestdb = await updateUser(users[1].id, {
+            name: "Richard Cheese",
+            location: "Ransomware, ID",
+        });
+        console.log('updatedUserInTestdb ', updatedUserInTestdb);
+
+        
     } catch (error) {
         console.log('there was an error testing the database: ', error)
     }
