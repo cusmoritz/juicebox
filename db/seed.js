@@ -1,6 +1,6 @@
 // get and destructure the client from index.js
 // also import our functions from index.js
-const { client, getAllUsers, createUser, updateUser } = require('./index');
+const { client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts,  } = require('./index');
 
 // we have to drop all the tables before we can rebuild the database
 const dropTables = async() => {
@@ -8,6 +8,7 @@ const dropTables = async() => {
 
         // cannot drop tables if they require a different table
         await client.query(`
+        DROP TABLE IF EXISTS posts;
         DROP TABLE IF EXISTS users;
         `);
 
@@ -28,6 +29,13 @@ const createTables = async() => {
             password VARCHAR(255) NOT NULL,
             name VARCHAR(255) NOT NULL, 
             location VARCHAR(255) NOT NULL,
+            active BOOLEAN DEFAULT true
+        );
+        CREATE TABLE posts (
+            id SERIAL PROMARY KEY,
+            "authorId" INTEGER REFERENCES users(id) NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
             active BOOLEAN DEFAULT true
         );
         `);
@@ -66,6 +74,7 @@ const rebuildDb = async() => {
 
     } catch (error) {
         console.log('there was an error rebuilding the database: ', error);
+        throw error;
     }
 };
 
@@ -81,9 +90,10 @@ const testDb = async() => {
         });
         console.log('updatedUserInTestdb ', updatedUserInTestdb);
 
-        
+
     } catch (error) {
-        console.log('there was an error testing the database: ', error)
+        console.log('there was an error testing the database: ', error);
+        throw error;
     }
 };
 
