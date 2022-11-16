@@ -16,7 +16,7 @@ const dropTables = async () => {
         `);
         // console.log('tables dropped');
     } catch (error) {
-        console.log('error dropping tables');
+        console.log('error dropping tables', error);
         // throw instead of console.log so it goes back to the func that called it
         throw error;
     }
@@ -156,6 +156,7 @@ const rebuildDB = async () => {
         await createTables();
         await createInitialUser();
         await createInitialPosts();
+        await createFirstTags();
         // await getUserById(2);
         // console.log('done rebuilding');
 
@@ -168,39 +169,39 @@ const rebuildDB = async () => {
 const testDB = async() => {
     try {
 
-        console.log("Calling getAllUsers");
-        const users = await getAllUsers();
-        console.log("Result:", users);
+        // console.log("Calling getAllUsers");
+        // const users = await getAllUsers();
+        // console.log("Result:", users);
 
-        console.log("Calling updateUser on users[0]");
-        const updateUserResult = await updateUser(users[0].id, {
-            name: "updated users name",
-            location: "updated location1"
-        });
-        console.log("Result:", updateUserResult);
+        // console.log("Calling updateUser on users[0]");
+        // const updateUserResult = await updateUser(users[0].id, {
+        //     name: "updated users name",
+        //     location: "updated location1"
+        // });
+        // console.log("Result:", updateUserResult);
 
-        console.log("Calling getAllPosts");
-        const posts = await getAllPosts();
-        console.log("Result:", posts);
+        // console.log("Calling getAllPosts");
+        // const posts = await getAllPosts();
+        // console.log("Result:", posts);
 
-        console.log("Calling updatePost on posts[0]");
-        const updatePostResult = await updatePost(posts[0].id, {
-            title: "this title has been updated",
-            content: "content updating is difficult"
-          });
-        console.log('result: ', updatePostResult)
+        // console.log("Calling updatePost on posts[0]");
+        // const updatePostResult = await updatePost(posts[0].id, {
+        //     title: "this title has been updated",
+        //     content: "content updating is difficult"
+        //   });
+        // console.log('result: ', updatePostResult)
 
-        console.log('calling getUserById with 1');
-        const albert = await getUserById(1);
-        console.log('results: ', albert);
+        // console.log('calling getUserById with 1');
+        // const albert = await getUserById(1);
+        // console.log('results: ', albert);
 
         console.log('calling get posts by user ID with 1');
         const callingGPBUID = await getPostsByUser(1);
         console.log('Result: ', callingGPBUID);
 
-        console.log('we are creating initial tags');
-        const createInitialTags = await createFirstTags();
-        console.log('this is what our created tags look like: ', createInitialTags);
+        // console.log('we are creating initial tags');
+        // const createInitialTags = await createFirstTags();
+        // console.log('this is what our created tags look like: ', createInitialTags);
 
         return users;
     } catch (error) {

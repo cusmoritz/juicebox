@@ -167,17 +167,17 @@ const getPostById = async (postId) => {
         WHERE id=$1;
         `, [postId]);
 
-        // console.log('singlepost in getPostById', singlePost )
+        console.log('singlepostId in getPostById', singlePost.id )
 
         // this function selects all the tags, joins the tags that have been paired with a postId
-        const {rows: [ tags ] } = await client.query(`
+        const {rows: [ id ]} = await client.query(`
         SELECT tags.*
         FROM tags
         JOIN post_tags ON tags.id=post_tags."tagId"
         WHERE post_tags."postId"=$1;
         `, [singlePost.id]);
 
-        console.log('>>>>>>>>>>>>>>>>>', tags);
+        console.log('>>>>>>>>>>>>>>>>>', id);
 
         // now we get the post author object
         const {rows: [ author ]} = await client.query(`
@@ -223,6 +223,8 @@ const updatePost = async(id, fields = {}) => {
 
 // get all posts function
 const getAllPosts = async () => {
+
+    
     try {
         // title, content, active, posterId
         const { rows } = await client.query(`
@@ -256,9 +258,11 @@ const getPostsByUser = async(userId) => {
           FROM posts 
           WHERE "authorId"=${ userId };
         `);
+
+        console.log('postIds in getPostsByUser', postIds)
     
         const posts = await Promise.all(postIds.map(
-          post => getPostById( post.id )
+          post =>  getPostById( post.id )
         ));
     
         return posts;
