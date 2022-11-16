@@ -118,7 +118,7 @@ const createTags = async (tagList) => {
         WHERE name
         IN (${selectValues});
         `, tagList)
-        console.log('getting tags from table: ', getTags.rows);
+        // console.log('getting tags from table: ', getTags.rows);
 
         return getTags.rows;
 
@@ -143,7 +143,7 @@ const createPostTag = async(postId, tagId) => {
 
 const addTagsToPost = async (postId, tagList) => {
 
-    console.log('tagList in addTags: ', tagList)
+    // console.log('tagList in addTags: ', tagList)
     try {
         const creatingPostTagPromise = tagList.map(tag => createPostTag(postId, tag.id));
         await Promise.all(creatingPostTagPromise);
@@ -159,13 +159,16 @@ const addTagsToPost = async (postId, tagList) => {
 const getPostById = async (postId) => {
     try {
 
+        console.log('postId inside getPostById', postId);
+
         //this function gets our post
         const {rows: [ singlePost ]} = await client.query(`
         SELECT *
         FROM posts
         WHERE id=$1;
         `, [postId]);
-        // console.log('this is posts by id: ', singlePost);
+
+        console.log('singlepost in getPostById', singlePost )
 
         // this function selects all the tags, joins the tags that have been paired with a postId
         const { rows } = await client.query(`
@@ -174,14 +177,13 @@ const getPostById = async (postId) => {
         JOIN post_tags ON tags.id=post_tags."tagId"
         WHERE post_tags."postId"=$1;
         `, [singlePost.id]);
-        // console.log('this should be all the tags on the post: ', rows);
 
+        // now we get the post author object
         const {rows: [ author ]} = await client.query(`
         SELECT id, username, name, location
         FROM users
         WHERE id=$1;
         `, [singlePost.authorId]);
-        // console.log('this should be our author: ', author);
 
         singlePost.tags = rows;
         singlePost.author = author;
@@ -237,18 +239,33 @@ const getAllPosts = async () => {
 
 // get posts by user
 const getPostsByUser = async(userId) => {
-    // console.log('userId in getPostsByUser ', userId)
+    // try {
+    //     const { rows } = await client.query(`
+    //     SELECT * FROM posts
+    //     WHERE "authorId"=${ userId };
+    //     `);
+    //     return rows;
+    // } catch (error) {
+    //     console.error('there was a problem getting posts by user');
+    //     throw error;
+    // }
+
+    //refactored code to call getPostsById , which returns more information
     try {
-        // console.log('getting posts from ', userId);
-        const { rows } = await client.query(`
-        SELECT * FROM posts
-        WHERE "authorId"=${ userId };
+        const { rows: postIds } = await client.query(`
+        SELECT id
+        FROM posts
+        WHERE "authorId"=${userId};
         `);
-        // console.log('done getting posts from ', userId);
-        return rows;
+
+        console.log('>>>>>>>>>>>>>rows', postIds);
+
+        const posts = await Promise.all(postIds.map(eachPost => { getPostById(eachPost.id)}));
+
+        console.log('posts in getPostsByUser', posts)
+        return posts;
     } catch (error) {
-        console.error('there was a problem getting posts by user');
-        throw error;
+        console.error('there was an error getting posts by the user: ', error)
     }
 };
 
