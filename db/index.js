@@ -345,6 +345,20 @@ const getPostsByTagName = async(tagName) => {
     }
 };
 
+const getAllTags = async() => {
+    try {
+        const { rows } = await client.query(`
+        SELECT * 
+        FROM tags;
+        `);
+
+        return rows;
+    } catch (error) {
+        console.log('there was an error in getAllTags: ', error);
+        throw error;
+    }
+}
+
 // export our modules as an object, so we can get them later
 // exporting to seed.js
 module.exports = {
@@ -362,5 +376,6 @@ module.exports = {
     addTagsToPost,
     getPostById,
     getPostsByTagName,
-    
+    getAllTags,
+
 }
