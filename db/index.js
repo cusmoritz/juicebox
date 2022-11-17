@@ -146,6 +146,38 @@ const getPostsByUser = async(userId) => {
     }
 };
 
+const getPostById = async(postId) => {
+    try {
+        const { rows: [ post ]} = await client.query(`
+        SELECT * 
+        FROM posts
+        WHERE id=$1;
+        `[postId]);
+
+        const { rows: tags } = await client.query(`
+        SELECT tags.* 
+        FROM tags
+        JOIN post_tags ON tags.id=post_tags."tagId"
+        WHERE post_tags."postId"=$1;
+        `, [postId]);
+
+        const { rows: [ author ]} = await client.query(`
+        SELECT id, username, name, location
+        FROM users
+        WHERE id=$1;
+        `, [post.authorId]);
+
+        post.tags = tags;
+        post.author = author;
+
+        delete post.authorId;
+
+        return post;
+    } catch (error) {
+        console.log('there was an error in getPostsById: ', error);
+    }
+};
+
 // get the user by their database Id
 const getUserById = async(userId) => {
     try {
@@ -176,6 +208,7 @@ const getUserById = async(userId) => {
 
 const createTags = async(tagList) => {
 
+    console.log('tagList in createTags: ', tagList)
     if (tagList.length === 0) {
         return null;
     }
@@ -183,9 +216,11 @@ const createTags = async(tagList) => {
     // creating our string for interpolation
     const insertValues = tagList.map(
         (_, index) => `$${ index + 1 }`).join('), (');
+        // ends up as: ($1), ($2), ($3), ... depending on how many tags
 
     const selectValues = tagList.map(
         (_, index) => `$${ index + 1 }`).join(', ');
+        // ends up as: $1, $2, $3 ... depending on how many tags
 
     try {
 
@@ -194,7 +229,7 @@ const createTags = async(tagList) => {
         INSERT INTO tags (name)
         VALUES (${ insertValues })
         ON CONFLICT (name) DO NOTHING;
-        `);
+        `, [tagList]);
 
         // get all the tags from the table that match our input tagList
         const { rows } = await client.query(`
@@ -211,6 +246,35 @@ const createTags = async(tagList) => {
     }
 };
 
+const createPostTag = async(postId, tagId) => {
+    try {
+        await client.query(`
+        INSERT INTO post_tags("postId", "tagId")
+        VALUES ($1, $2)
+        ON CONFLICT ("postId, "tagId") DO NOTHING;
+        `, [postId, tagId]);
+    } catch (error) {
+        console.log('there was an error in createPostTag: ', error);
+        throw error;
+    }
+};
+
+const addTagsToPost = async(postId, tagList) => {
+    try {
+        const createPostTagPromises = tagList.map(
+            tag => createPostTag(postId, tag.id)
+        );
+
+        // we have to Promise all in case there's more than 1 tag
+        await Promise.all(createPostTagPromises);
+
+        return await getPostById(postId);
+    } catch (error) {
+        console.log('there was an error in addTagsToPost: ', error);
+        throw error;
+    }
+};
+
 // export our modules as an object, so we can get them later
 // exporting to seed.js
 module.exports = {
@@ -223,4 +287,8 @@ module.exports = {
     getAllPosts, 
     getPostsByUser, 
     getUserById,
+    createTags, 
+    createPostTag,
+    addTagsToPost,
+
 }

@@ -1,6 +1,6 @@
 // get and destructure the client from index.js
 // also import our functions from index.js
-const { client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts, getPostsByUser, getUserById,  } = require('./index');
+const { client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts, getPostsByUser, getUserById, createTags, createPostTag, addTagsToPost,  } = require('./index');
 
 // we have to drop all the tables before we can rebuild the database
 const dropTables = async() => {
@@ -89,6 +89,30 @@ const createInitialPosts = async() => {
     }
 };
 
+const createInitialTags = async() => {
+    try {
+        console.log('starting to create initial tags');
+
+        const [lame, smoothAsButter, loveHurts, dope] = await createTags([
+            '#lame',
+            '#smoothAsButter',
+            '#loveHurts',
+            '#dope',
+        ]);
+
+        const [post1, post2, post3] = await getAllPosts();
+
+        await addTagsToPost(post1.id, [lame, loveHurts]);
+        await addTagsToPost(post2.id, [smoothAsButter, dope]);
+        await addTagsToPost(post3.id, [dope, smoothAsButter, loveHurts]);
+
+        console.log('done creating tags');
+    } catch (error) {
+        console.log('there was an error in createInitialTags: ', error);
+        throw error;
+    }
+}
+
 // this function will rebuild our database by dropping and then creating all parts
 const rebuildDb = async() => {
     try {
@@ -99,6 +123,7 @@ const rebuildDb = async() => {
         await createTables();
         await createInitialUsers();
         await createInitialPosts();
+        await createInitialTags();
 
     } catch (error) {
         console.log('there was an error rebuilding the database: ', error);
