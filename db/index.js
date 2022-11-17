@@ -70,14 +70,13 @@ const updateUser = async(id, fields = {}) => {
 const createPost = async({ authorId, title, content}) => {
 
     try {
-        const { rows } = await client.query(`
+        const { rows: [ post ] } = await client.query(`
         INSERT INTO posts ("authorId", title, content)
         VALUES ($1 ,$2, $3)
-        ON CONFLICT (title) DO NOTHING
         RETURNING *;
         `, [authorId, title, content]);
 
-        return rows;
+        return post;
     } catch (error) {
         console.log('there was an error in createPost: ', error);
         throw error;
@@ -85,7 +84,7 @@ const createPost = async({ authorId, title, content}) => {
 };
 
 // this should update our posts
-const updatePost = async(id, fields={ title, content, active }) => {
+const updatePost = async(id, fields={}) => {
 
     const setString = Object.keys(fields).map(
         // this is like saying 'first key' = $1
@@ -93,16 +92,20 @@ const updatePost = async(id, fields={ title, content, active }) => {
         (key, index) => `"${ key }"=$${ index + 1}`
         ).join(', ');
 
+    if (setString.length === 0) {
+        return null;
+    };
+
     try {
 
-        const { rows } = await client.query(`
+        const { rows: [ post ] } = await client.query(`
         UPDATE posts
         SET ${ setString }
         WHERE id=${ id }
         RETURNING *;
         `, Object.values(fields));
 
-        return rows;
+        return post;
         
     } catch (error) {
         console.log('there was an error in updatePost: ', error);
@@ -115,7 +118,7 @@ const getAllPosts = async() => {
     try {
 
         const { rows } = await client.query(`
-        SELECT id, "authorId", title, content, active
+        SELECT *
         FROM posts;
         `);
     
@@ -131,7 +134,8 @@ const getPostsByUser = async(userId) => {
     try {
         
         const { rows } = await client.query(`
-        SELECT * FROM posts
+        SELECT * 
+        FROM posts
         WHERE "authorId"=${ userId };
         `);
 
@@ -161,11 +165,48 @@ const getUserById = async(userId) => {
             delete user.password;
             const userposts = await getPostsByUser(user.id);
             user.posts = userposts;
-        }
+        };
 
         return user;
     } catch (error) {
         console.log('there was an error in getUserById: ', error);
+        throw error;
+    }
+};
+
+const createTags = async(tagList) => {
+
+    if (tagList.length === 0) {
+        return null;
+    }
+
+    // creating our string for interpolation
+    const insertValues = tagList.map(
+        (_, index) => `$${ index + 1 }`).join('), (');
+
+    const selectValues = tagList.map(
+        (_, index) => `$${ index + 1 }`).join(', ');
+
+    try {
+
+        // put all the tags into our table
+        await client.query(`
+        INSERT INTO tags (name)
+        VALUES (${ insertValues })
+        ON CONFLICT (name) DO NOTHING;
+        `);
+
+        // get all the tags from the table that match our input tagList
+        const { rows } = await client.query(`
+        SELECT *
+        FROM tags
+        WHERE name=${ selectValues };
+        `);
+
+        return rows;
+        
+    } catch (error) {
+        console.log('there was an error in createTags: ', error);
         throw error;
     }
 };

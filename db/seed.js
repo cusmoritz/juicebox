@@ -8,6 +8,8 @@ const dropTables = async() => {
 
         // cannot drop tables if they require a different table
         await client.query(`
+        DROP TABLE IF EXISTS post_tags;
+        DROP TABLE IF EXISTS tags;
         DROP TABLE IF EXISTS posts;
         DROP TABLE IF EXISTS users;
         `);
@@ -32,11 +34,20 @@ const createTables = async() => {
             active BOOLEAN DEFAULT true
         );
         CREATE TABLE posts (
-            id SERIAL PROMARY KEY,
+            id SERIAL PRIMARY KEY,
             "authorId" INTEGER REFERENCES users(id) NOT NULL,
             title VARCHAR(255) NOT NULL,
             content TEXT NOT NULL,
             active BOOLEAN DEFAULT true
+        );
+        CREATE TABLE tags (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) UNIQUE NOT NULL
+        );
+        CREATE TABLE post_tags (
+            "postId" INTEGER REFERENCES posts(id),
+            "tagId" INTEGER REFERENCES tags(id),
+            UNIQUE ("postId", "tagId")
         );
         `);
 
@@ -49,9 +60,9 @@ const createTables = async() => {
 const createInitialUsers = async() => {
     try {
         
-        const albert = await createUser({username: 'albert', password: 'notAlbert', name: 'Alberto', location: 'Hollywood'});
+        const albert = await createUser({username: "albert", password: "notAlbert", name: "Alberto", location: "Hollywood"});
 
-        const anthony = await createUser({ username: 'anTONY', password: 'hereLIEStony', name: 'Soprano', loaction: 'Italy?'});
+        const anthony = await createUser({ username: 'anTONY', password: 'hereLIEStony', name: 'Soprano', location: "Italy"});
 
         const sam = await createUser({username: 'SAMwhich', password: 'SAMeyeAM', name: 'samdra', location: 'OHIO'});
 
@@ -98,7 +109,7 @@ const rebuildDb = async() => {
 const testDb = async() => {
     try {
 
-        console.log("Starting to test database...");
+    console.log("Starting to test database...");
 
     console.log("Calling getAllUsers");
     const users = await getAllUsers();
@@ -127,7 +138,7 @@ const testDb = async() => {
     console.log("Result:", albert);
 
     console.log("Finished database tests!");
-    
+
     } catch (error) {
         console.log('there was an error testing the database: ', error);
         throw error;
