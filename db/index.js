@@ -122,8 +122,53 @@ const getAllPosts = async() => {
         return rows;
     } catch (error) {
         console.log('there was an error in getAllPosts: ', error);
+        throw error;
     }
-}
+};
+
+// get the posts by the users database Id
+const getPostsByUser = async(userId) => {
+    try {
+        
+        const { rows } = await client.query(`
+        SELECT * FROM posts
+        WHERE "authorId"=${ userId };
+        `);
+
+        return rows;
+    } catch (error) {
+        console.log('there was an error in getPostsByUser: ', error);
+        throw error;
+    }
+};
+
+// get the user by their database Id
+const getUserById = async(userId) => {
+    try {
+        
+        // get user from database and detructure just the user
+        const {rows: [ user ]} = await client.query(`
+            SELECT * 
+            FROM users
+            WHERE id=${ userId };
+        `);
+
+        // if they exist...
+        if (!user) {
+            return null;
+        } else {
+            // get rid of their password, snag their posts and add to object
+            delete user.password;
+            const userposts = await getPostsByUser(user.id);
+            user.posts = userposts;
+        }
+
+        return user;
+    } catch (error) {
+        console.log('there was an error in getUserById: ', error);
+        throw error;
+    }
+};
 
 // export our modules as an object, so we can get them later
 // exporting to seed.js
@@ -135,5 +180,6 @@ module.exports = {
     createPost,
     updatePost,
     getAllPosts, 
-    
+    getPostsByUser, 
+    getUserById,
 }
