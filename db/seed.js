@@ -1,6 +1,6 @@
 // get and destructure the client from index.js
 // also import our functions from index.js
-const { client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts, getPostsByUser, getUserById, createTags, createPostTag, addTagsToPost, getPostById, getPostsByTagName,  } = require('./index');
+const { client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts, getPostsByUser, getUserById, createTags, createPostTag, addTagsToPost, getPostById, getPostsByTagName, getUserByUsername,  } = require('./index');
 
 // we have to drop all the tables before we can rebuild the database
 const dropTables = async() => {
@@ -66,6 +66,8 @@ const createInitialUsers = async() => {
 
         const sam = await createUser({username: 'SAMwhich', password: 'SAMeyeAM', name: 'samdra', location: 'OHIO'});
 
+        return [albert, anthony, sam];
+
     } catch (error) {
         console.log('there was an error in createInitialUsers: ', error);
         throw error;
@@ -91,7 +93,7 @@ const createInitialPosts = async() => {
 
 const createInitialTags = async() => {
     try {
-        console.log('starting to create initial tags');
+        // console.log('starting to create initial tags');
 
         const [lame, smoothAsButter, loveHurts, dope] = await createTags([
             '#lame',
@@ -106,7 +108,7 @@ const createInitialTags = async() => {
         await addTagsToPost(post2.id, [smoothAsButter, dope]);
         await addTagsToPost(post3.id, [dope, smoothAsButter, loveHurts]);
 
-        console.log('done creating tags');
+        // console.log('done creating tags');
     } catch (error) {
         console.log('there was an error in createInitialTags: ', error);
         throw error;
@@ -136,41 +138,41 @@ const testDb = async() => {
 
     console.log("Starting to test database...");
 
-    console.log("Calling getAllUsers");
+    // console.log("Calling getAllUsers");
     const users = await getAllUsers();
-    console.log("Result:", users);
+    // console.log("Result:", users);
 
-    console.log("Calling updateUser on users[0]");
+    // console.log("Calling updateUser on users[0]");
     const updateUserResult = await updateUser(users[0].id, {
         name: "Richard Cheese",
         location: "Ransomware, ID",
     });
-    console.log("Result:", updateUserResult);
+    // console.log("Result:", updateUserResult);
 
-    console.log("Calling getAllPosts");
+    // console.log("Calling getAllPosts");
     const posts = await getAllPosts();
-    console.log("Result:", posts);
+    // console.log("Result:", posts);
 
-    console.log("Calling updatePost on posts[0]");
+    // console.log("Calling updatePost on posts[0]");
     const updatePostResult = await updatePost(posts[0].id, {
       title: "Same Title",
       content: "but this TIME YOU FELL FOR IT AGAIN HAHAHAA"
     });
-    console.log("Result:", updatePostResult);
+    // console.log("Result:", updatePostResult);
 
-    console.log("Calling getUserById with 1");
+    // console.log("Calling getUserById with 1");
     const albert = await getUserById(1);
-    console.log("Result:", albert);
+    // console.log("Result:", albert);
 
-    console.log("Calling updatePost on posts[1], only updating tags");
+    // console.log("Calling updatePost on posts[1], only updating tags");
     const updatePostTagsResult = await updatePost(posts[1].id, {
       tags: ["#DatabasesWack", "#frontend4ever", "#codeWars"]
     });
-    console.log("Result:", updatePostTagsResult);
+    // console.log("Result:", updatePostTagsResult);
 
-    console.log("Calling getPostsByTagName with #nerds");
-    const postsWithNerd = await getPostsByTagName("#nerds");
-    console.log("Result:", postsWithNerd);
+    // console.log("Calling getPostsByTagName with #nerds");
+    const postsWithNerd = await getPostsByTagName("#Simpsons");
+    // console.log("Result:", postsWithNerd);
 
     console.log("Finished database tests!");
 

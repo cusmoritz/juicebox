@@ -195,7 +195,7 @@ const getPostById = async(postId) => {
         WHERE id=$1;
         `, [postId]);
 
-        console.log('post in getPostbyId: ', post);
+        // console.log('post in getPostbyId: ', post);
 
         const { rows: tags } = await client.query(`
         SELECT tags.* 
@@ -249,10 +249,26 @@ const getUserById = async(userId) => {
     }
 };
 
+// get user by username
+const getUserByUsername = async(username) => {
+    try {
+        const { rows: [ user ]} = await client.query(`
+        SELECT * 
+        FROM users
+        WHERE username=$1;
+        `, [username])
+
+        return user;
+    } catch (error) {
+        console.log('there was an error in getUserByUsername: ', error);
+        throw error;
+    }
+};
+
 // THERE IS A COMMA IN HERE THAT SUCKS
 async function createTags(tagList) {
 
-    console.log('tagList in createTags: ', tagList)
+    // console.log('tagList in createTags: ', tagList)
     if (tagList.length === 0) {
         return;
     }
@@ -284,7 +300,7 @@ async function createTags(tagList) {
         WHERE name IN (${ selectValues });
         `, tagList);
 
-        console.log('rows in createTags: ', rows);
+        // console.log('rows in createTags: ', rows);
 
         return rows;
         
@@ -377,5 +393,5 @@ module.exports = {
     getPostById,
     getPostsByTagName,
     getAllTags,
-
+    getUserByUsername,
 }

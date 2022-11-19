@@ -44,4 +44,11 @@ apiRouter.use('/posts', postsRouter);
 const tagsRouter = require('./tags');
 apiRouter.use('/tags', tagsRouter)
 
+apiRouter.use((error, request, response, next) => {
+    response.send({
+        name: error.name,
+        message: error.message
+    });
+});
+
 module.exports = apiRouter;
