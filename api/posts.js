@@ -2,11 +2,13 @@ const express = require('express');
 const postsRouter = express.Router();
 const { requireUser } = require('./utils');
 
-const { getAllPosts, createPost,  } = require('../db');
+const { getAllPosts, createPost, updatePost, getPostById,  } = require('../db');
+const { response } = require('express');
 
 postsRouter.post('/', requireUser, async(request, respond, next) => {
 
     console.log('request body in postsRouter/post: ', request.user);
+    try {
     // destructure our post to create
     const { title, content, tags } = request.body;
 
@@ -24,7 +26,7 @@ postsRouter.post('/', requireUser, async(request, respond, next) => {
         postData.tags = postTags;
     };
 
-    try {
+
         postData.title = title;
         postData.content = content;
         postData.authorId = user;
@@ -32,14 +34,15 @@ postsRouter.post('/', requireUser, async(request, respond, next) => {
 
         // if there is a post, send it back
         if (post) {
-            respond.send({post});
+            respond.send({post}).status(200);
         // otherwise, error handling
-        } else {
-            next({
-                name: "ErrorCalling",
-                message: "There was an error creating a new post."
-            })
-        };
+        } 
+        // else {
+        //     next({
+        //         name: "ErrorCalling",
+        //         message: "There was an error creating a new post."
+        //     })
+        // };
         
     } catch (error) {
         console.log('there was an error in postRouter.post / : ', error);
@@ -60,6 +63,61 @@ postsRouter.get('/', requireUser, async(request, respond) => {
 
 });
 
+// require user makes sure we are logged in before we can edit a post
+postsRouter.patch('/:postId', requireUser, async(request, respond, next) => {
+    // get the postId from the url (params)
+    const { postId } = request.params;
+
+    // get the content that is sent to us from the body
+    const { title, content, tags } = request.body;
+
+    // empty object to put our updated data into and send to database
+    const updateData = {};
+
+    // if we are sent tags put them in the updated object
+    if (tags && tags.length > 0) {
+        updateData.tags = tags.trim().split(/\s+/);
+    };
+
+    // if we are updating a title, change that
+    if (title) {
+        updateData.title = title;
+    };
+
+    // same for content
+    if (content) {
+        updateData.content = content;
+    };
+
+    try {
+        // get original post in database from the url params
+        const originalPost = await getPostById(postId);
+
+        // check to see if user is the author of a post
+        if (originalPost.author.id === request.user.id) {
+
+            // if they are, use updatePost to change the post in our database
+            const updatedPost = await updatePost(postId, updateData);
+
+            // and send it back
+            respond.send({ post: updatedPost });
+        } else {
+            next({
+                name: "UnauthorizedUserError",
+                message: "You can only update the posts you have created."
+            });
+        }
+
+    } catch (error) {
+        console.log('there was an error in postsRouter/PATCH: ', error);
+        next({
+            name: "ErrorUpdating",
+            message: "There was an error updating your post."
+        });
+    }
+});
+
+
+
 module.exports = postsRouter;
 
-curl http://localhost:1337/api/posts -X POST -H 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhbGJlcnQiLCJpYXQiOjE2Njg4NzYzMjR9.Tiy9F-56I0f4MakOQeN3T_It_O_u7eWMTwUnqoLkvzE' -H 'Content-Type: application/json' -d
