@@ -35,6 +35,18 @@ apiRouter.use(async (request, response, next) => {
     }
 });
 
+// .use runs on every refresh / call
+apiRouter.use((request, respond, next) => {
+
+    // see if we have a user
+    // this pretty much means that we have a user logged in 
+    // because it runs on everything
+    if (request.user) {
+        console.log('user is here: ', request.user);
+    }
+    next();
+})
+
 const usersRouter = require('./users');
 apiRouter.use('/users', usersRouter);
 
@@ -42,6 +54,7 @@ const postsRouter = require('./posts');
 apiRouter.use('/posts', postsRouter);
 
 const tagsRouter = require('./tags');
+const { request } = require('express');
 apiRouter.use('/tags', tagsRouter)
 
 apiRouter.use((error, request, response, next) => {

@@ -1,9 +1,50 @@
 const express = require('express');
 const usersRouter = express.Router();
-const { getAllUsers, getUserByUsername } = require('../db');
+const { getAllUsers, getUserByUsername, createUser } = require('../db');
 
 // get token package
 const jwt = require('jsonwebtoken');
+
+usersRouter.post('/register', async (request, respond, next) => {
+    
+    // pull the user register information out of the request call
+    const { username, password, name, location } = request.body;
+
+    try {
+        // check our user information against our database
+        const _user = await getUserByUsername(username);
+
+        // check if our username already exists. cant have dupes
+        if (_user) {
+            next({
+                name: "UserDupliacted",
+                message: "This user already exists. Try again"
+            })
+        } 
+
+        // create a new user in the database
+        const user = await createUser({username, password, name, location,});
+
+        // create a token for the new user
+        const token = jwt.sign({id: user.id, username: username}, process.env.JWT_SECRET);
+        // if you wanted to add expiration, you would add
+            // { expiresIn: '1w' }
+        // after JWT_SECRET
+
+        // after creation, send a nice message and the token 
+        respond.send({
+            message: `You have created a new account with username ${username}`,
+            token
+        });
+
+    } catch (error) {
+        console.log('there was an error in usersRouter.post /register: ', error);
+        next({
+            name: 'InvaledRegister',
+            message: 'There was an error registering this user. Please try again.'
+        })
+    }
+})
 
 
 usersRouter.post('/login', async(request, respond, next) => {
