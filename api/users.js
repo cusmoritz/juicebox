@@ -44,7 +44,7 @@ usersRouter.post('/register', async (request, respond, next) => {
             message: 'There was an error registering this user. Please try again.'
         })
     }
-})
+});
 
 
 usersRouter.post('/login', async(request, respond, next) => {
