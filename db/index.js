@@ -197,6 +197,13 @@ const getPostById = async(postId) => {
 
         // console.log('post in getPostbyId: ', post);
 
+        if (!post) {
+            throw {
+                name: "PostNotFoundError",
+                message: "That post doesn't seem to exist."
+            };
+        };
+
         const { rows: tags } = await client.query(`
         SELECT tags.* 
         FROM tags

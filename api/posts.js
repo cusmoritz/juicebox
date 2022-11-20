@@ -54,12 +54,26 @@ postsRouter.post('/', requireUser, async(request, respond, next) => {
 
 });
 
-postsRouter.get('/', requireUser, async(request, respond) => {
-    const posts = await getAllPosts();
+postsRouter.get('/', requireUser, async(request, respond, next) => {
+    try {
+        // get all the posts
+        const allPosts = await getAllPosts();
 
-    respond.send({
-        posts
-    });
+        // filter the posts by active: true / false
+        const posts = allPosts.filter(eachPost => {
+            return eachPost.active || (request.user && eachPost.author.id === request.user.id);
+        });
+        respond.send({
+            posts
+        });
+    } catch (error) {
+        console.log('there was an error in postsRouter/GET: ', error);
+        next({
+            name: "CannotGetPostsError",
+            message: "There was an error getting all posts in postsRouter/GET"
+        })
+    }
+
 
 });
 
@@ -145,8 +159,6 @@ postsRouter.delete('/:postId', requireUser, async (request, respond, next) => {
         });
     }
 
-
-
     } catch (error) {
         console.log('there was an error in postsRouter/DELETE: ', error);
         next({
@@ -154,7 +166,7 @@ postsRouter.delete('/:postId', requireUser, async (request, respond, next) => {
             message: 'There was an error trying to delete a post.'
         })
     }    
-})
+});
 
 
 
