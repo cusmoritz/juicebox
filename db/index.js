@@ -7,7 +7,7 @@ const { DATABASE_URL = 'postgres://localhost:5432/juicebox-dev' } = process.env;
 
 const client = new Client({
     connectionString: DATABASE_URL,
-    ssl: process.end.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
 });
 
 const getAllUsers = async() => {
