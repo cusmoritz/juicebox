@@ -54,7 +54,6 @@ const postsRouter = require('./posts');
 apiRouter.use('/posts', postsRouter);
 
 const tagsRouter = require('./tags');
-const { request } = require('express');
 apiRouter.use('/tags', tagsRouter)
 
 apiRouter.use((error, request, response, next) => {

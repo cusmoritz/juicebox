@@ -341,7 +341,7 @@ const addTagsToPost = async(postId, tagList) => {
 
 const getPostsByTagName = async(tagName) => {
     try {
-
+        // console.log('tag name', tagName)
         // get the post id
         const { rows: postIds } = await client.query(`
         SELECT posts.id
@@ -350,6 +350,8 @@ const getPostsByTagName = async(tagName) => {
         JOIN tags ON tags.id=post_tags."tagId"
         WHERE tags.name=$1;
         `, [tagName]);
+
+        // console.log("postIds in db index; ", postIds);
 
         return await Promise.all(postIds.map(
             post => getPostById(post.id)

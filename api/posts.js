@@ -117,6 +117,45 @@ postsRouter.patch('/:postId', requireUser, async(request, respond, next) => {
     }
 });
 
+postsRouter.delete('/:postId', requireUser, async (request, respond, next) => {
+
+    try {
+         // get the post id from the params
+    const { postId } = request.params;
+
+    // get the post from the database
+    const post = await getPostById(postId);
+
+    // if the post exists, and the user is the owner of the post...
+    if (post && post.author.id === request.user.id) {
+        // ...update the post to inactive...
+        const updatedPost = await updatePost(post.id, { active: false });
+
+        // ...and send it back
+        respond.send({ post: updatedPost });
+    } else {
+        // if there was a post but the user was not the owner
+        next( post ? {
+            name: 'UnauthorizedUserError',
+            message: 'You can only delete your own posts.'
+        // or if there was no post
+        } : {
+            name: 'NoPostError',
+            message: 'That post does not exist.'
+        });
+    }
+
+
+
+    } catch (error) {
+        console.log('there was an error in postsRouter/DELETE: ', error);
+        next({
+            name: 'UnauthorizedDeleteError',
+            message: 'There was an error trying to delete a post.'
+        })
+    }    
+})
+
 
 
 module.exports = postsRouter;
